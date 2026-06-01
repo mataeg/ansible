@@ -1,0 +1,48 @@
+# https://dart.dev/guides/libraries/private-files
+
+# Created by https://www.toptal.com/developers/gitignore/api/flutter,android
+# Edit at https://www.toptal.com/developers/gitignore
+
+### Android ###
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Key/keystore files, to prevent accidental committing of templates or secrets
+*.jks
+*.keystore
+*.keys
+*.properties
+!proguard-rules.pro
+!gradle.properties
+
+# Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+### Flutter ###
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Symbol lookup folder for iOS/macOS builds
+/ios/Flutter/ephemeral/
+/ephemeral/
+
+# Avoid committing generated code or config
+/lib/generated/
+*.g.dart
+*.freezed.dart
+
+# OS-generated files
+.DS_Store
+Thumbs.db
