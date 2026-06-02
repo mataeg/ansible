@@ -21,10 +21,116 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure  = true;
   bool _showUrl  = false;
 
+  static const String appVersion = '1.0.0';
+
   @override
   void initState() {
     super.initState();
     _urlCtrl.text = ref.read(serverUrlProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdate();
+    });
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      final data = await ref.read(apiClientProvider).checkAppVersion();
+      if (data['ok'] == true) {
+        final latestVersion = data['version'] as String;
+        final downloadUrl = data['download_url'] as String;
+        if (latestVersion != appVersion && mounted) {
+          _showUpdateDialog(latestVersion, downloadUrl);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking app version: $e');
+    }
+  }
+
+  void _showUpdateDialog(String version, String url) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.system_update, color: AppTheme.accent),
+              const SizedBox(width: 10),
+              Text(
+                'تحديث جديد متاح!',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: AppTheme.text1,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'يتوفر إصدار جديد من التطبيق ($version). يُرجى التحديث للحصول على آخر الميزات والتحسينات والاستقرار.',
+                style: const TextStyle(color: AppTheme.text2, fontSize: 14, height: 1.4),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('لاحقاً', style: TextStyle(color: AppTheme.text2)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _showDownloadInstructions(url);
+              },
+              child: const Text('تنزيل الآن', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDownloadInstructions(String url) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('رابط التنزيل المباشر',
+              style: TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('بإمكانك نسخ الرابط التالي وتحميل التطبيق مباشرة من المتصفح:',
+                  style: TextStyle(color: AppTheme.text2, fontSize: 13, height: 1.4)),
+              const SizedBox(height: 12),
+              SelectableText(
+                url,
+                style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق', style: TextStyle(color: AppTheme.text2)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

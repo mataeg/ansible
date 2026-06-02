@@ -132,6 +132,26 @@ class ApiClient {
     final res = await _dio.post('/api/automation/trigger/remediation');
     return res.data as Map<String, dynamic>;
   }
+
+  // ── Version Check & Crash Reporting ──────────────────────────────────────────
+  Future<Map<String, dynamic>> checkAppVersion() async {
+    final res = await _dio.get('/api/app/version');
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<void> reportAppLog({
+    required String error,
+    required String stack,
+    required String username,
+    Map<String, dynamic>? deviceInfo,
+  }) async {
+    await _dio.post('/api/app/logs/report', data: {
+      'error': error,
+      'stack': stack,
+      'username': username,
+      'device_info': deviceInfo ?? {},
+    });
+  }
 }
 
 final apiClientProvider = Provider<ApiClient>((ref) {

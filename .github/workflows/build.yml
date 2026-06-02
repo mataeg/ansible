@@ -30,7 +30,7 @@ jobs:
 
       - name: Build APK
         run: |
-          flutter build apk --release > build_log.txt 2>&1 || (cat build_log.txt && exit 1)
+          flutter build apk --release --split-per-abi > build_log.txt 2>&1 || (cat build_log.txt && exit 1)
 
       - name: Upload Build Log on Failure
         if: failure()
@@ -42,5 +42,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: release-apks
+          path: build/app/outputs/flutter-apk/*-release.apk
