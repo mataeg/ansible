@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +21,16 @@ final dioProvider = Provider<Dio>((ref) {
     receiveTimeout: const Duration(seconds: 20),
     headers: {'Accept': 'application/json', 'Content-Type': 'application/json'},
   ));
+  
+  // Bypass SSL verification to support self-signed certificates or intermediate trust chain issues
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient();
+      client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      return client;
+    },
+  );
+
   dio.interceptors.add(CookieManager(_cookieJar));
   dio.interceptors.add(LogInterceptor(requestBody: false, responseBody: false));
   return dio;
