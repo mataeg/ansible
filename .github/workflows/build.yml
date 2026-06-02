@@ -26,7 +26,7 @@ jobs:
         run: flutter create --platforms=android .
 
       - name: Inject Internet Permission
-        run: python3 scratch/inject_permission.py
+        run: python3 inject_permission.py
 
       - name: Install dependencies
         run: flutter pub get
