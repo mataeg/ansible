@@ -61,7 +61,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'تعذّر الاتصال بالسيرفر — تحقق من الـ IP والشبكة',
+        error: 'تعذّر الاتصال بالسيرفر — تحقق من الـ IP والشبكة\n($e)',
       );
       return false;
     }
