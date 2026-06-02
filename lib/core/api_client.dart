@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Server URL provider (configurable) ────────────────────────────────────────
-final serverUrlProvider = StateProvider<String>((ref) => 'http://192.168.10.243:5000');
+final serverUrlProvider = StateProvider<String>((ref) => 'https://ansible.mataeg.com');
 
 // ── Singleton cookie jar ───────────────────────────────────────────────────────
 final _cookieJar = CookieJar();
