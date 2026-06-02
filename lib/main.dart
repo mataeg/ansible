@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/router.dart';
 import 'core/app_theme.dart';
 
@@ -30,10 +31,11 @@ class FleetApp extends ConsumerWidget {
       routerConfig: router,
       locale: const Locale('ar', 'SA'),
       supportedLocales: const [Locale('ar', 'SA'), Locale('en', 'US')],
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: child!,
-      ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }
