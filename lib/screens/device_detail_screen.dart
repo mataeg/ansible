@@ -363,8 +363,12 @@ class _TicketsTab extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppTheme.card,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.border),
-                    borderRight: Border(right: BorderSide(color: pc, width: 3)),
+                    border: Border(
+                      top: const BorderSide(color: AppTheme.border),
+                      bottom: const BorderSide(color: AppTheme.border),
+                      left: const BorderSide(color: AppTheme.border),
+                      right: BorderSide(color: pc, width: 3),
+                    ),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [

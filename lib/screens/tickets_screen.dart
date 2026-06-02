@@ -195,11 +195,10 @@ class _TicketCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
         border: Border(
-          top: BorderSide(color: AppTheme.border),
-          bottom: BorderSide(color: AppTheme.border),
-          left: BorderSide(color: AppTheme.border),
+          top: const BorderSide(color: AppTheme.border),
+          bottom: const BorderSide(color: AppTheme.border),
+          left: const BorderSide(color: AppTheme.border),
           right: BorderSide(color: pc, width: 3),
         ),
       ),
