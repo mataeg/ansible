@@ -6,6 +6,7 @@ import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../core/api_client.dart';
 import '../core/router.dart';
+import '../core/app_updater.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -90,42 +91,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                _showDownloadInstructions(url);
+                AppUpdater.startUpdate(context, url, version);
               },
               child: const Text('تنزيل الآن', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDownloadInstructions(String url) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.card,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('رابط التنزيل المباشر',
-              style: TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('بإمكانك نسخ الرابط التالي وتحميل التطبيق مباشرة من المتصفح:',
-                  style: TextStyle(color: AppTheme.text2, fontSize: 13, height: 1.4)),
-              const SizedBox(height: 12),
-              SelectableText(
-                url,
-                style: const TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold, fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('إغلاق', style: TextStyle(color: AppTheme.text2)),
             ),
           ],
         );
