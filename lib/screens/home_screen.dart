@@ -195,13 +195,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: Row(
                   children: [
-                    _QuickBtn(label: 'SLA', icon: Icons.bar_chart, onTap: () => context.go('/sla')),
+                    _QuickBtn(label: 'SLA', icon: Icons.bar_chart, onTap: () => context.push('/sla')),
                     const SizedBox(width: 8),
-                    _QuickBtn(label: 'بلاغات', icon: Icons.confirmation_number_outlined, onTap: () => context.go('/tickets')),
+                    _QuickBtn(label: 'بلاغات', icon: Icons.confirmation_number_outlined, onTap: () => context.push('/tickets')),
                     const SizedBox(width: 8),
-                    _QuickBtn(label: 'امتثال', icon: Icons.verified_outlined, onTap: () => context.go('/compliance')),
+                    _QuickBtn(label: 'امتثال', icon: Icons.verified_outlined, onTap: () => context.push('/compliance')),
                     const SizedBox(width: 8),
-                    _QuickBtn(label: 'إعدادات', icon: Icons.settings_outlined, onTap: () => context.go('/settings')),
+                    _QuickBtn(label: 'إعدادات', icon: Icons.settings_outlined, onTap: () => context.push('/settings')),
                   ],
                 ),
               ),
@@ -262,7 +262,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     final r = filtered[i];
                     return RouterTile(
                       router: r,
-                      onTap: () => context.go('/device/${Uri.encodeComponent(r.name)}?ip=${r.ip}'),
+                      onTap: () => context.push('/device/${Uri.encodeComponent(r.name)}?ip=${r.ip}'),
                     ).animate().fadeIn(delay: Duration(milliseconds: i * 30));
                   },
                   childCount: filtered.length,

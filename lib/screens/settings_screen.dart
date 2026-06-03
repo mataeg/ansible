@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import '../core/api_client.dart';
 import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
@@ -22,6 +24,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   int _wrHour      = 9;
   int _arInterval  = 6;
 
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _canCheckBiometrics = false;
+  bool _useBiometric = false;
+
   @override
   void initState() {
     super.initState();
@@ -30,12 +36,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _load() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final useBio = prefs.getBool('use_biometric') ?? false;
+      final hasBio = await _localAuth.canCheckBiometrics;
+      final isSupported = await _localAuth.isDeviceSupported();
+
       final data = await ref.read(apiClientProvider).getAutomation();
       if (!mounted) return;
       final s = data['settings'] as Map<String, dynamic>? ?? {};
       final wr = s['weekly_report'] as Map? ?? {};
       final ar = s['auto_remediation'] as Map? ?? {};
       setState(() {
+        _useBiometric = useBio;
+        _canCheckBiometrics = hasBio && isSupported;
         _wrEnabled  = wr['enabled']        as bool? ?? false;
         _wrDay      = wr['day']            as String? ?? 'friday';
         _wrHour     = (wr['hour'] as num?)?.toInt() ?? 9;
@@ -47,6 +60,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       });
     } catch (e) {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggleBiometric(bool enable) async {
+    if (enable) {
+      try {
+        final authenticated = await _localAuth.authenticate(
+          localizedReason: 'يرجى المصادقة ببصمة الإصبع لتأكيد التفعيل',
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: true,
+          ),
+        );
+        if (authenticated) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('use_biometric', true);
+          setState(() {
+            _useBiometric = true;
+          });
+        }
+      } catch (e) {
+        debugPrint('Biometric verification failed: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('❌ تعذر تفعيل البصمة: $e')));
+        }
+      }
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('use_biometric', false);
+      setState(() {
+        _useBiometric = false;
+      });
     }
   }
 
@@ -118,12 +164,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _sectionCard('👤 معلومات المستخدم', [
                 _infoRow('الاسم', auth.username),
                 _infoRow('الدور', auth.role),
-                const SizedBox(height: 10),
+                if (_canCheckBiometrics) ...[
+                  const Divider(height: 24),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('الدخول ببصمة الإصبع', style: TextStyle(color: AppTheme.text1, fontSize: 13, fontWeight: FontWeight.w600)),
+                            SizedBox(height: 2),
+                            Text('تسجيل الدخول السريع باستخدام البصمة', style: TextStyle(color: AppTheme.text2, fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _useBiometric,
+                        activeColor: AppTheme.green,
+                        onChanged: _toggleBiometric,
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () => ref.read(authProvider.notifier).logout(),
                   icon: const Icon(Icons.logout),
                   label: const Text('تسجيل الخروج'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.red),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.red,
+                    minimumSize: const Size(double.infinity, 44),
+                  ),
                 ),
               ]),
 

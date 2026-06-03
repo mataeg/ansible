@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import '../core/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../core/api_client.dart';
@@ -22,15 +24,77 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure  = true;
   bool _showUrl  = false;
 
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _rememberMe = true;
+  bool _canCheckBiometrics = false;
+  bool _useBiometric = false;
+
   static const String appVersion = '1.0.1';
 
   @override
   void initState() {
     super.initState();
     _urlCtrl.text = ref.read(serverUrlProvider);
+    _loadSavedCredentials();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkForUpdate();
     });
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedUser = prefs.getString('saved_username') ?? '';
+      final savedPass = prefs.getString('saved_password') ?? '';
+      final savedRemember = prefs.getBool('remember_me') ?? true;
+      final useBio = prefs.getBool('use_biometric') ?? false;
+
+      setState(() {
+        if (savedUser.isNotEmpty) _userCtrl.text = savedUser;
+        if (savedPass.isNotEmpty) _passCtrl.text = savedPass;
+        _rememberMe = savedRemember;
+        _useBiometric = useBio;
+      });
+
+      final hasBio = await _localAuth.canCheckBiometrics;
+      final isSupported = await _localAuth.isDeviceSupported();
+      setState(() {
+        _canCheckBiometrics = hasBio && isSupported;
+      });
+
+      if (useBio && _canCheckBiometrics && savedUser.isNotEmpty && savedPass.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) _authenticateWithBiometrics();
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      final authenticated = await _localAuth.authenticate(
+        localizedReason: 'يرجى المصادقة ببصمة الإصبع لتسجيل الدخول السريع',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+      if (authenticated && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        final user = prefs.getString('saved_username') ?? '';
+        final pass = prefs.getString('saved_password') ?? '';
+        if (user.isNotEmpty && pass.isNotEmpty) {
+          final ok = await ref.read(authProvider.notifier).login(
+            user,
+            pass,
+            rememberMe: true,
+          );
+          if (ok && mounted) context.go('/home');
+        }
+      }
+    } catch (e) {
+      debugPrint('Biometric auth error: $e');
+    }
   }
 
   Future<void> _checkForUpdate() async {
@@ -116,6 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final ok = await ref.read(authProvider.notifier).login(
       _userCtrl.text.trim(),
       _passCtrl.text,
+      rememberMe: _rememberMe,
     );
     if (ok && mounted) context.go('/home');
   }
@@ -228,6 +293,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ).animate().fadeIn(delay: 400.ms),
 
+                  const SizedBox(height: 10),
+
+                  // Remember Me checkbox
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _rememberMe,
+                        activeColor: AppTheme.accent,
+                        onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                      ),
+                      const Text(
+                        'تذكرني وحفظ بيانات الدخول',
+                        style: TextStyle(color: AppTheme.text2, fontSize: 13),
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 420.ms),
+
                   // Error message
                   if (auth.error != null) ...[
                     const SizedBox(height: 14),
@@ -249,17 +331,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Login Button
-                  ElevatedButton(
-                    onPressed: auth.isLoading ? null : _login,
-                    child: auth.isLoading
-                      ? const SizedBox(width: 22, height: 22,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('دخول'),
+                  // Login Button & Fingerprint Shortcut
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.accent,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: auth.isLoading ? null : _login,
+                            child: auth.isLoading
+                              ? const SizedBox(width: 22, height: 22,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('تسجيل الدخول', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      if (_canCheckBiometrics && _useBiometric) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.accent.withOpacity(0.3)),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.fingerprint, color: AppTheme.accent, size: 28),
+                            onPressed: _authenticateWithBiometrics,
+                          ),
+                        ),
+                      ],
+                    ],
                   ).animate().fadeIn(delay: 450.ms),
 
                   const SizedBox(height: 20),
-                  Text('v1.0.0 — EasyBill Fleet',
+                  Text('v1.0.1 — EasyBill Fleet',
                     style: const TextStyle(color: AppTheme.text2, fontSize: 11)),
                 ],
               ),
