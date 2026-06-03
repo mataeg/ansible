@@ -20,7 +20,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchCtrl = TextEditingController();
   String _filter = '';
   int _navIndex = 0;
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.1';
 
   @override
   void initState() {

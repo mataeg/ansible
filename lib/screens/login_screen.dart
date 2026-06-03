@@ -22,7 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure  = true;
   bool _showUrl  = false;
 
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.1';
 
   @override
   void initState() {

@@ -60,6 +60,9 @@ class ApiClient {
 
   Future<Map<String, dynamic>> getRouters() async {
     final res = await _dio.get('/api/routers');
+    if (res.data is List) {
+      return {'routers': res.data};
+    }
     return res.data as Map<String, dynamic>;
   }
 
