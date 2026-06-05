@@ -7,7 +7,6 @@ import '../core/api_client.dart';
 import '../providers/auth_provider.dart';
 import '../providers/fleet_provider.dart';
 import '../core/app_updater.dart';
-import '../widgets/stat_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -17,9 +16,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final _searchCtrl = TextEditingController();
-  String _filter = '';
-  int _navIndex = 0;
   static const String appVersion = '1.0.1';
 
   @override
@@ -100,41 +96,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final auth  = ref.watch(authProvider);
     final fleet = ref.watch(fleetProvider);
-
-    final filtered = fleet.routers.where((r) {
-      if (_filter.isEmpty) return true;
-      return r.name.toLowerCase().contains(_filter) ||
-             r.ip.contains(_filter) ||
-             r.model.toLowerCase().contains(_filter);
-    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.router, color: AppTheme.accent, size: 20),
+            const Icon(Icons.dashboard_outlined, color: AppTheme.accent, size: 20),
             const SizedBox(width: 8),
-            const Text('EasyBill Fleet'),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.accent.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text('${fleet.total}',
-                style: const TextStyle(color: AppTheme.accent, fontSize: 12, fontWeight: FontWeight.w700)),
-            ),
+            const Text('EasyBill لوحة التحكم'),
           ],
         ),
         actions: [
@@ -153,169 +125,206 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: RefreshIndicator(
         color: AppTheme.accent,
         onRefresh: () => ref.read(fleetProvider.notifier).refresh(),
-        child: CustomScrollView(
-          slivers: [
-            // ── Stats Row ────────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Row(
-                  children: [
-                    Expanded(child: StatCard(
-                      value: '${fleet.onlineCount}',
-                      label: 'متصل',
-                      icon: Icons.circle,
-                      color: AppTheme.green,
-                      loading: fleet.isLoading,
-                    )),
-                    const SizedBox(width: 10),
-                    Expanded(child: StatCard(
-                      value: '${fleet.offlineCount}',
-                      label: 'فاصل',
-                      icon: Icons.circle,
-                      color: AppTheme.red,
-                      loading: fleet.isLoading,
-                    )),
-                    const SizedBox(width: 10),
-                    Expanded(child: StatCard(
-                      value: '${fleet.total}',
-                      label: 'الإجمالي',
-                      icon: Icons.router,
-                      color: AppTheme.accent,
-                      loading: fleet.isLoading,
-                    )),
-                  ],
-                ).animate().fadeIn(duration: 400.ms),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ── Welcome Banner ──────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0F2042), Color(0xFF0D1B36)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.accent.withOpacity(0.25)),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('مرحباً بك في نظام إدارة الشبكات', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 6),
+                  const Text('تابع وأدر أسطول أجهزة MikroTik بكل سهولة عبر لوحة التحكم السريعة.', style: TextStyle(color: AppTheme.text2, fontSize: 11, height: 1.4)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _smallStat('متصل', '${fleet.onlineCount}', AppTheme.green),
+                      const SizedBox(width: 14),
+                      _smallStat('فاصل', '${fleet.offlineCount}', AppTheme.red),
+                      const SizedBox(width: 14),
+                      _smallStat('الإجمالي', '${fleet.total}', AppTheme.accent),
+                    ],
+                  )
+                ],
+              ),
+            ).animate().fadeIn(duration: 400.ms),
+
+            const SizedBox(height: 20),
+
+            const Text('الخدمات والوظائف الرئيسية', style: TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 12),
+
+            // ── Grid of Menu Tiles ──────────────────────────────────────
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.15,
+              children: [
+                _dashboardCard(
+                  title: 'أجهزة المايكروتيك',
+                  subtitle: '${fleet.total} أجهزة مسجلة',
+                  icon: Icons.router,
+                  color: AppTheme.accent,
+                  onTap: () => context.push('/mikrotik'),
+                ).animate().fadeIn(delay: 50.ms),
+                _dashboardCard(
+                  title: 'الامتثال والأمان',
+                  subtitle: 'فحوصات ZTP و SSTP',
+                  icon: Icons.verified_outlined,
+                  color: AppTheme.green,
+                  onTap: () => context.push('/compliance'),
+                ).animate().fadeIn(delay: 100.ms),
+                _dashboardCard(
+                  title: 'مستويات الخدمة SLA',
+                  subtitle: 'تقارير أوقات التشغيل',
+                  icon: Icons.bar_chart,
+                  color: AppTheme.yellow,
+                  onTap: () => context.push('/sla'),
+                ).animate().fadeIn(delay: 150.ms),
+                _dashboardCard(
+                  title: 'إدارة البلاغات',
+                  subtitle: 'تذاكر الدعم والأعطال',
+                  icon: Icons.confirmation_number_outlined,
+                  color: const Color(0xFFFF8A00),
+                  onTap: () => context.push('/tickets'),
+                ).animate().fadeIn(delay: 200.ms),
+              ],
             ),
 
-            // ── Quick Nav ─────────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                child: Row(
-                  children: [
-                    _QuickBtn(label: 'SLA', icon: Icons.bar_chart, onTap: () => context.push('/sla')),
-                    const SizedBox(width: 8),
-                    _QuickBtn(label: 'بلاغات', icon: Icons.confirmation_number_outlined, onTap: () => context.push('/tickets')),
-                    const SizedBox(width: 8),
-                    _QuickBtn(label: 'امتثال', icon: Icons.verified_outlined, onTap: () => context.push('/compliance')),
-                    const SizedBox(width: 8),
-                    _QuickBtn(label: 'إعدادات', icon: Icons.settings_outlined, onTap: () => context.push('/settings')),
-                  ],
-                ),
+            const SizedBox(height: 12),
+
+            _fullWidthCard(
+              title: 'إعدادات النظام والأتمتة',
+              subtitle: 'تحديد فترات الإصلاح التلقائي وتفعيل تقارير التلجرام',
+              icon: Icons.settings_outlined,
+              color: Colors.purpleAccent,
+              onTap: () => context.push('/settings'),
+            ).animate().fadeIn(delay: 250.ms),
+
+            const SizedBox(height: 24),
+            Center(
+              child: Text(
+                'إصدار التطبيق v$appVersion — EasyBill Fleet',
+                style: const TextStyle(color: AppTheme.text2, fontSize: 10),
               ),
             ),
-
-            // ── Search ────────────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                child: TextField(
-                  controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _filter = v.toLowerCase()),
-                  style: const TextStyle(color: AppTheme.text1, fontSize: 13),
-                  decoration: InputDecoration(
-                    hintText: 'بحث في الأجهزة...',
-                    prefixIcon: const Icon(Icons.search, color: AppTheme.text2, size: 20),
-                    suffixIcon: _filter.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppTheme.text2, size: 18),
-                          onPressed: () { _searchCtrl.clear(); setState(() => _filter = ''); })
-                      : null,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Error ─────────────────────────────────────────────────────
-            if (fleet.error != null)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.red.withOpacity(0.3)),
-                    ),
-                    child: Text(fleet.error!,
-                      style: const TextStyle(color: AppTheme.red, fontSize: 12)),
-                  ),
-                ),
-              ),
-
-            // ── Router List ───────────────────────────────────────────────
-            if (fleet.isLoading && fleet.routers.isEmpty)
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) => const ShimmerRouterTile(),
-                  childCount: 8,
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) {
-                    final r = filtered[i];
-                    return RouterTile(
-                      router: r,
-                      onTap: () => context.push('/device/${Uri.encodeComponent(r.name)}?ip=${r.ip}'),
-                    ).animate().fadeIn(delay: Duration(milliseconds: i * 30));
-                  },
-                  childCount: filtered.length,
-                ),
-              ),
-
-            // Last update
-            if (fleet.lastUpdate != null)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'آخر تحديث: ${_fmtTime(fleet.lastUpdate!)}',
-                    style: const TextStyle(color: AppTheme.text2, fontSize: 11),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
           ],
         ),
       ),
     );
   }
 
-  String _fmtTime(DateTime dt) =>
-    '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}:${dt.second.toString().padLeft(2,'0')}';
-}
+  Widget _smallStat(String label, String value, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        ),
+        const SizedBox(width: 6),
+        Text('$label: ', style: const TextStyle(color: AppTheme.text2, fontSize: 11)),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+      ],
+    );
+  }
 
-class _QuickBtn extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  const _QuickBtn({required this.label, required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
+  Widget _dashboardCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppTheme.card,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppTheme.border),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: AppTheme.accent, size: 20),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: AppTheme.text1, fontSize: 10, fontWeight: FontWeight.w600)),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 12)),
+            const SizedBox(height: 2),
+            Text(subtitle, style: const TextStyle(color: AppTheme.text2, fontSize: 10)),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _fullWidthCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 3),
+                  Text(subtitle, style: const TextStyle(color: AppTheme.text2, fontSize: 10)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: AppTheme.text2, size: 12),
+          ],
+        ),
+      ),
+    );
+  }
 }

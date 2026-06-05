@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/login_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/mikrotik_dashboard_screen.dart';
+import '../screens/device_list_screen.dart';
+import '../screens/sstp_discovery_screen.dart';
 import '../screens/device_detail_screen.dart';
 import '../screens/sla_screen.dart';
 import '../screens/tickets_screen.dart';
@@ -30,6 +33,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (ctx, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik',
+        builder: (ctx, state) => const MikrotikDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik/devices',
+        builder: (ctx, state) => const DeviceListScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik/discover',
+        builder: (ctx, state) => const SstpDiscoveryScreen(),
       ),
       GoRoute(
         path: '/device/:name',

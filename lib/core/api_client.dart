@@ -154,6 +154,20 @@ class ApiClient {
     return res.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> addDevice(String name, String version, String model) async {
+    final res = await _dio.post('/api/devices/add', data: {
+      'name': name,
+      'version': version,
+      'model': model,
+    });
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getSstpDiscovery() async {
+    final res = await _dio.get('/api/discover/sstp');
+    return res.data as Map<String, dynamic>;
+  }
+
   Future<void> reportAppLog({
     required String error,
     required String stack,
