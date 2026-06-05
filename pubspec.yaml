@@ -1,7 +1,7 @@
 name: fleet_app
 description: EasyBill MikroTik Fleet Manager - Professional Android App
 publish_to: 'none'
-version: 1.0.3+22
+version: 1.0.3+23
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

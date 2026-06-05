@@ -440,7 +440,7 @@ class _AnsiblePlaybooksScreenState extends ConsumerState<AnsiblePlaybooksScreen>
                                               setState(() {
                                                 _scope = 'single';
                                                 if (_targetDevice == null && routers.isNotEmpty) {
-                                                  _targetDevice = routers[0]['name'] as String;
+                                                  _targetDevice = routers[0].name;
                                                 }
                                               });
                                             }
@@ -454,8 +454,8 @@ class _AnsiblePlaybooksScreenState extends ConsumerState<AnsiblePlaybooksScreen>
                                             style: const TextStyle(color: AppTheme.text1),
                                             items: routers.map<DropdownMenuItem<String>>((r) {
                                               return DropdownMenuItem<String>(
-                                                value: r['name'] as String,
-                                                child: Text('${r['name']} (${r['ip']})'),
+                                                value: r.name,
+                                                child: Text('${r.name} (${r.ip})'),
                                               );
                                             }).toList(),
                                             onChanged: (val) {

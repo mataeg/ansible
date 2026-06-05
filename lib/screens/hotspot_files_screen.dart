@@ -518,7 +518,7 @@ class _HotspotFilesScreenState extends ConsumerState<HotspotFilesScreen> {
                                                 setState(() {
                                                   _scope = 'single';
                                                   if (_targetDevice == null && routers.isNotEmpty) {
-                                                    _targetDevice = routers[0]['name'] as String;
+                                                    _targetDevice = routers[0].name;
                                                   }
                                                 });
                                               },
@@ -531,8 +531,8 @@ class _HotspotFilesScreenState extends ConsumerState<HotspotFilesScreen> {
                                                 style: const TextStyle(color: AppTheme.text1, fontSize: 11),
                                                 items: routers.map<DropdownMenuItem<String>>((r) {
                                                   return DropdownMenuItem<String>(
-                                                    value: r['name'] as String,
-                                                    child: Text(r['name'] as String),
+                                                    value: r.name,
+                                                    child: Text(r.name),
                                                   );
                                                 }).toList(),
                                                 onChanged: (val) => setState(() => _targetDevice = val),
