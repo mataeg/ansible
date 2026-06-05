@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../core/app_theme.dart';
 import '../core/api_client.dart';
 import '../providers/fleet_provider.dart';
@@ -358,6 +359,8 @@ class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> with 
         final routerName = item['router_name'] as String? ?? '—';
         final ip = item['ip'] as String? ?? '—';
 
+        final hasRouter = routerName != '—' && routerName != null && routerName.isNotEmpty;
+
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           color: AppTheme.card,
@@ -365,48 +368,63 @@ class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> with 
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(color: AppTheme.green.withOpacity(0.2)),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppTheme.green.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppTheme.green.withOpacity(0.3)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: !hasRouter ? null : () {
+              context.push('/device/$routerName?ip=$ip');
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.green.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.green.withOpacity(0.3)),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.verified, color: AppTheme.green, size: 20),
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.verified, color: AppTheme.green, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(pppName, style: const TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 13)),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accent.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(pppName, style: const TextStyle(color: AppTheme.text1, fontWeight: FontWeight.bold, fontSize: 13)),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accent.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('مسجل', style: TextStyle(color: AppTheme.accent, fontSize: 9, fontWeight: FontWeight.bold)),
                             ),
-                            child: const Text('مسجل', style: TextStyle(color: AppTheme.accent, fontSize: 9, fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text('IP المسجل: $ip  •  IP الفعلي: $address', style: const TextStyle(color: AppTheme.text2, fontSize: 11)),
-                      const SizedBox(height: 2),
-                      Text('Uptime: $uptime', style: const TextStyle(color: AppTheme.text2, fontSize: 10)),
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text('IP المسجل: $ip  •  IP الفعلي: $address', style: const TextStyle(color: AppTheme.text2, fontSize: 11)),
+                        const SizedBox(height: 2),
+                        Text('Uptime: $uptime', style: const TextStyle(color: AppTheme.text2, fontSize: 10)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  if (hasRouter) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.visibility_outlined, color: AppTheme.accent),
+                      onPressed: () {
+                        context.push('/device/$routerName?ip=$ip');
+                      },
+                    ),
+                  ],
+                ],
+              ),
             ),
           ).animate().fadeIn(delay: Duration(milliseconds: i * 30)),
         );

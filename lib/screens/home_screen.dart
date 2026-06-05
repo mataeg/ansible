@@ -16,7 +16,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  static const String appVersion = '1.0.2';
+  static const String appVersion = '1.0.3';
 
   @override
   void initState() {

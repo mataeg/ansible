@@ -219,6 +219,48 @@ class ApiClient {
       'device_info': deviceInfo ?? {},
     });
   }
+
+  // ── Templates ───────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getTemplates() async {
+    final res = await _dio.get('/api/templates');
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getTemplateContent(String path) async {
+    final res = await _dio.get('/api/templates/get', queryParameters: {'path': path});
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> saveTemplateContent(String path, String content) async {
+    final res = await _dio.post('/api/templates/save', data: {'path': path, 'content': content});
+    return res.data as Map<String, dynamic>;
+  }
+
+  // ── Hotspot Portal Files ───────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getHotspotFiles() async {
+    final res = await _dio.get('/api/hotspot/files');
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getHotspotFileContent(String filename) async {
+    final res = await _dio.get('/api/hotspot/file/content', queryParameters: {'filename': filename});
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> saveHotspotFileContent(String filename, String content) async {
+    final res = await _dio.post('/api/hotspot/file/save', data: {'filename': filename, 'content': content});
+    return res.data as Map<String, dynamic>;
+  }
+
+  // ── Streaming Responses (for Ansible SSE) ──────────────────────────────────
+  Future<ResponseBody> getStreamingResponse(String path, {Map<String, dynamic>? queryParameters}) async {
+    final res = await _dio.get<ResponseBody>(
+      path,
+      queryParameters: queryParameters,
+      options: Options(responseType: ResponseType.stream),
+    );
+    return res.data!;
+  }
 }
 
 final apiClientProvider = Provider<ApiClient>((ref) {

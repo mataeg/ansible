@@ -11,6 +11,9 @@ import '../screens/tickets_screen.dart';
 import '../screens/compliance_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/managers_screen.dart';
+import '../screens/ansible_playbooks_screen.dart';
+import '../screens/hotspot_files_screen.dart';
+import '../screens/operations_screen.dart';
 import '../providers/auth_provider.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -46,6 +49,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/mikrotik/discover',
         builder: (ctx, state) => const SstpDiscoveryScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik/playbooks',
+        builder: (ctx, state) => const AnsiblePlaybooksScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik/hotspot-files',
+        builder: (ctx, state) => const HotspotFilesScreen(),
+      ),
+      GoRoute(
+        path: '/mikrotik/operations',
+        builder: (ctx, state) => const OperationsScreen(),
       ),
       GoRoute(
         path: '/device/:name',
