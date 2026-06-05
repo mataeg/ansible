@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _canCheckBiometrics = false;
   bool _useBiometric = false;
 
-  static const String appVersion = '1.0.1';
+  static const String appVersion = '1.0.3';
 
   @override
   void initState() {
@@ -370,7 +370,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ).animate().fadeIn(delay: 450.ms),
 
                   const SizedBox(height: 20),
-                  Text('v1.0.1 — EasyBill Fleet',
+                  Text('v1.0.3 — EasyBill Fleet',
                     style: const TextStyle(color: AppTheme.text2, fontSize: 11)),
                 ],
               ),
