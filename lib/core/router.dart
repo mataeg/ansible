@@ -10,6 +10,7 @@ import '../screens/sla_screen.dart';
 import '../screens/tickets_screen.dart';
 import '../screens/compliance_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/managers_screen.dart';
 import '../providers/auth_provider.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -68,6 +69,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (ctx, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/managers',
+        builder: (ctx, state) => const ManagersScreen(),
       ),
     ],
   );

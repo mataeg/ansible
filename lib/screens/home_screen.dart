@@ -215,6 +215,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTap: () => context.push('/settings'),
             ).animate().fadeIn(delay: 250.ms),
 
+            if (ref.watch(authProvider).isAdmin) ...[
+              const SizedBox(height: 12),
+              _fullWidthCard(
+                title: 'إدارة المستخدمين والمديرين',
+                subtitle: 'إضافة فنيين ومدراء جدد وإعادة تعيين كلمات المرور للصلاحيات المختلفة',
+                icon: Icons.manage_accounts_outlined,
+                color: AppTheme.purple,
+                onTap: () => context.push('/managers'),
+              ).animate().fadeIn(delay: 300.ms),
+            ],
+
             const SizedBox(height: 24),
             Center(
               child: Text(

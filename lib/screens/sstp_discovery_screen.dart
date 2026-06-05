@@ -12,11 +12,13 @@ class SstpDiscoveryScreen extends ConsumerStatefulWidget {
   ConsumerState<SstpDiscoveryScreen> createState() => _SstpDiscoveryScreenState();
 }
 
-class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> {
+class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> with SingleTickerProviderStateMixin {
   List<dynamic> _known = [];
   List<dynamic> _newConnections = [];
   bool _loading = false;
   String? _error;
+
+  late TabController _tabController;
 
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
@@ -27,11 +29,13 @@ class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _scan();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _nameCtrl.dispose();
     _verCtrl.dispose();
     _modelCtrl.dispose();
@@ -235,29 +239,28 @@ class _SstpDiscoveryScreenState extends ConsumerState<SstpDiscoveryScreen> {
                     ),
                   ),
                 )
-              : DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        labelColor: AppTheme.accent,
-                        unselectedLabelColor: AppTheme.text2,
-                        indicatorColor: AppTheme.accent,
-                        tabs: [
-                          Tab(text: 'أجهزة غير مسجلة (${_newConnections.length})'),
-                          Tab(text: 'أجهزة مسجلة (${_known.length})'),
+              : Column(
+                  children: [
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: AppTheme.accent,
+                      unselectedLabelColor: AppTheme.text2,
+                      indicatorColor: AppTheme.accent,
+                      tabs: [
+                        Tab(text: 'أجهزة غير مسجلة (${_newConnections.length})'),
+                        Tab(text: 'أجهزة مسجلة (${_known.length})'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildNewList(),
+                          _buildKnownList(),
                         ],
                       ),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _buildNewList(),
-                            _buildKnownList(),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }

@@ -154,7 +154,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isOnline = (_info?['status'] ?? 'offline') == 'online';
+    final isOnline = _info?['ok'] == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -221,6 +221,9 @@ class _InfoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (info == null) return const Center(child: Text('لا توجد بيانات', style: TextStyle(color: AppTheme.text2)));
+    
+    final facts = info!['facts'] as Map<String, dynamic>?;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -238,23 +241,67 @@ class _InfoTab extends StatelessWidget {
               Icon(isOnline ? Icons.wifi : Icons.wifi_off,
                 color: isOnline ? AppTheme.green : AppTheme.red, size: 20),
               const SizedBox(width: 8),
-              Text(isOnline ? 'متصل ✓' : 'غير متصل',
+              Text(isOnline ? 'متصل ومستقر ✓' : 'فاصل API / غير متصل',
                 style: TextStyle(
                   color: isOnline ? AppTheme.green : AppTheme.red,
                   fontWeight: FontWeight.w700, fontSize: 15)),
             ],
           ),
         ),
+        if (!isOnline) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'تعذر الاتصال بـ RouterOS API عبر منفذ 8728/8729. قد يكون الجهاز غير متصل أو الـ API معطل.',
+                    style: TextStyle(color: Colors.orange, fontSize: 11, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         _card([
           InfoRow(label: 'الـ IP',     value: info!['ip']      ?? '—'),
-          InfoRow(label: 'الموديل',   value: info!['model']   ?? '—'),
-          InfoRow(label: 'الإصدار',   value: info!['version'] ?? '—'),
+          InfoRow(label: 'الموديل',   value: (facts?['board'] as String?) ?? info!['model'] ?? '—'),
+          InfoRow(label: 'الإصدار',   value: (facts?['version'] as String?) ?? '—'),
           InfoRow(label: 'المعرّف',   value: info!['name']    ?? '—'),
         ]),
-        if (info!['uptime'] != null) ...[
+        if (isOnline && facts != null) ...[
           const SizedBox(height: 12),
-          _card([InfoRow(label: 'مدة التشغيل', value: info!['uptime'] ?? '—')]),
+          _card([
+            InfoRow(
+              label: 'حمل المعالج (CPU Load)',
+              value: '${facts['cpu_load'] ?? 0}%',
+            ),
+            InfoRow(
+              label: 'الذاكرة الحرة (Free Memory)',
+              value: '${(((facts['free_mem'] ?? 0) as num) / 1024 / 1024).toStringAsFixed(1)} MB / ${(((facts['total_mem'] ?? 0) as num) / 1024 / 1024).toStringAsFixed(1)} MB',
+            ),
+            InfoRow(
+              label: 'المساحة الحرة (Free Disk)',
+              value: '${(((facts['free_hdd'] ?? 0) as num) / 1024 / 1024).toStringAsFixed(1)} MB / ${(((facts['total_hdd'] ?? 0) as num) / 1024 / 1024).toStringAsFixed(1)} MB',
+            ),
+            InfoRow(
+              label: 'المعمارية (Arch)',
+              value: facts['arch'] ?? '—',
+            ),
+          ]),
+        ],
+        if (isOnline && facts?['uptime'] != null) ...[
+          const SizedBox(height: 12),
+          _card([InfoRow(label: 'مدة التشغيل (Uptime)', value: facts!['uptime'] ?? '—')]),
         ],
       ],
     );

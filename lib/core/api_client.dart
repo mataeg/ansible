@@ -74,8 +74,15 @@ class ApiClient {
 
   // ── Device Profile ──────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> getDeviceInfo(String name) async {
-    final res = await _dio.get('/api/device/$name/info');
-    return res.data as Map<String, dynamic>;
+    try {
+      final res = await _dio.get('/api/device/$name/facts');
+      return res.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data is Map) {
+        return e.response!.data as Map<String, dynamic>;
+      }
+      return {'ok': false, 'error': e.toString()};
+    }
   }
 
   Future<Map<String, dynamic>> healthCheck(String name) async {
@@ -94,7 +101,38 @@ class ApiClient {
   }
 
   Future<void> deleteNote(String name, int noteId) async {
-    await _dio.post('/api/device/$name/notes/$noteId/delete');
+    await _dio.post('/api/device/$name/notes/delete', data: {'id': noteId});
+  }
+
+  // ── User Administration ──────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getUsers() async {
+    final res = await _dio.get('/api/admin/users');
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> addUser(String username, String password, String fullname, String role) async {
+    final res = await _dio.post('/api/admin/users/add', data: {
+      'username': username,
+      'password': password,
+      'fullname': fullname,
+      'role': role,
+    });
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> editUser(String username, {String? fullname, String? role, String? password}) async {
+    final data = <String, dynamic>{'username': username};
+    if (fullname != null) data['fullname'] = fullname;
+    if (role != null) data['role'] = role;
+    if (password != null) data['password'] = password;
+
+    final res = await _dio.post('/api/admin/users/edit', data: data);
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> deleteUser(String username) async {
+    final res = await _dio.post('/api/admin/users/delete', data: {'username': username});
+    return res.data as Map<String, dynamic>;
   }
 
   // ── Tickets ─────────────────────────────────────────────────────────────────
